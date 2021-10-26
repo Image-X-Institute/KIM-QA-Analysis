@@ -1,0 +1,89 @@
+﻿# Machine specific settings
+
+# units of pixels for first two then degrees for last offset component
+machine_offsetsx = 5.119, 1.148, -103.7
+machine_offsetsy = 1.111, -2.882, -11.4
+
+# machine_acquisition = folder 
+# machine_cw = true
+machine_fullfan = true
+machine_sad = 100
+machine_sid = 153.6
+machine_pixellengthatdetector = 0.4
+# Half fan displacement = 160 on TB, 148 on Trilogy, 142 for Elekta
+
+machine_halfFanDisplacment = 142
+machine_xcenterPixel = 511
+machine_ycenterPixel = 512
+# machine_frameinvert = 0
+# machine_trackingip = 0.0.0.0
+# machine_odbc = 
+
+# Method specific settings
+method_imageCompressed = false
+method_flipImage = false
+method_markerLengthMM = 3
+method_markerWidthMM = 1
+# method_maxblobwidth = 6
+# method_maxbloblength = 2
+# method_minblobarea = 12
+#method_templatewidth = 21			
+#method_templatelength = 21
+
+method_templatewidth = 31				
+method_templatelength = 31
+# method_maxmovement = 10
+# method_maxstdwidth = 1
+# method_maxstdlength = 3
+# method_mincandidatetrace = 20
+# method_maxdistancetotrace = 50
+# method_mintracesupport = 50
+# method_minmodelfoundation = 100
+method_searchregionwidth = 21
+method_searchregionlength = 21
+#method_searchregionwidth = 31
+#method_searchregionlength = 51
+#method_searchregionlength = 121
+#method_segmentationsearchregionwidth = 40
+method_segmentationsearchregionwidth =	41
+method_segmentationsearchregionlength = 41
+#method_segmentationsearchregionlength = 71
+#method_segmentationsearchregionlength = 121
+method_MaximiumJointTemplateDeviation = 10
+method_JointTemplateMarkerDistance = 10
+method_JointTemplateCorrelation = 0.0
+# use a region of 41*41 with old version of cross correlation and 21*21 with new version
+
+# Set the tumour type - i.e. this turns on the extra correlations for lung tumours and disables them for prostate
+method_TumourType = lung
+# The number of data points to use when building the PDF
+method_PDFDataPoints = 480		
+# Used as a threshold on marker correlations when computing the mean of the 3D points
+method_MeanMarkerCorrelation = 0.0
+# The minimum correlation for 2D segmented locations to go into the PDF
+method_PDFMinimumCorrelation = 0.0		
+# For trend filtering - if the average of the last n points correlation is a fixed value then we do not expect the next correlation to deviate from this value significantly - 
+# these parameters set the value of n and the deviation from the average allowable.  Note setting the points to zero disables this option - the option has been disabled 
+# permanently because when the beam is off the correlations will be different to when the beam is on. 
+method_CorrelationTrendNumberPoints = 0
+method_CorrelationTrendDeviationAllowed = 0.05  
+
+# ADI Settings
+ADI_Enable = false
+ADI_IPAddress = 10.206.2.241
+ADI_Port = 56050
+ADI_ClientID = 4156
+
+
+medthod_RigidityCheckThreshold = 5
+
+  
+##################################
+# Markerless Settings
+
+Markerless_Enable = false
+SaveFrames = false
+SaveDRR = false
+
+# End of Markerless Settings
+##################################

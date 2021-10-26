@@ -1,0 +1,9 @@
+
+QA result: KIM FAILED in Dynamic test
+
+
+
+ 	 Mean (mm)	  	  	 Std (mm)	  	  	 Percentile (5, 95) 	 LR	 SI	 AP	 LR	 SI	 AP		 LR		 SI		 AP	-0.10	 0.26	 2.76	 0.31	 1.32	 1.83		(-0.61, 0.31)	(-2.02, 2.64)	(-1.79, 4.74)
+
+
+Shift is=	 168.330000

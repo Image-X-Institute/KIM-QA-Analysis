@@ -1,0 +1,6 @@
+patient_markercoordinates2D = 488,461,522,492,542,527
+patient_name = Tracker (TzzSeed),
+patient_mrn = SEED
+FOV=100x100
+LearningArc=40
+LinacType=0
