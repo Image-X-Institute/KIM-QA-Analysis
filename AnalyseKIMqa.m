@@ -139,7 +139,8 @@ if exist(fullfile(KIMdata.KIMTrajFolder, 'couchShifts.txt'),'file') == 2
     
     couch.NumShifts = length(couch.vrt)-1;
     if strcmp(KIMdata.vendor,'Varian')
-        couch.ShiftsAP = -diff(couch.vrt)*10;	% AP maps to couch -vert
+%         couch.ShiftsAP = -diff(couch.vrt)*10;	% AP maps to couch -vert
+        couch.ShiftsAP = diff(couch.vrt)*10;	% AP maps to couch -vert
         couch.ShiftsSI = diff(couch.lng)*10;    % SI maps to couch long
         couch.ShiftsLR = diff(couch.lat)*10;    % LR maps to couch lat
     else
@@ -229,7 +230,7 @@ dataKIM.coord.center(:,1) = sum(dataKIM.coord.raw.x,2)/nMar - Avg_marker_x;
 dataKIM.coord.center(:,2) = sum(dataKIM.coord.raw.y,2)/nMar - Avg_marker_y;
 dataKIM.coord.center(:,3) = sum(dataKIM.coord.raw.z,2)/nMar - Avg_marker_z;
 
-%% Align KIM and motion traces
+%% Remove couch shifts from KIM
 dataKIM.coord.shifted = dataKIM.coord.center;
 if couch.NumShifts >= 1
     for n = 1:couch.NumShifts
@@ -247,55 +248,23 @@ if static
     return
 end
 
-% TimeStart = -dataKIM.time.raw(1);
-TimeStart = -dataKIM.time.raw(round(length(dataKIM.time.raw)*3/4));
-TimeStep = mean(diff(dataMotion.timestamps))/4;
-% TimeEnd = abs(dataKIM.time.raw(end) - dataMotion.timestamps(end));
-TimeEnd = abs(dataKIM.time.raw(round(length(dataKIM.time.raw)/2)) - dataMotion.timestamps(end));
-ShiftValues = TimeStart:TimeStep:TimeEnd;
-% ShiftValues = paramData(1):paramData(2):paramData(3);
-
-if dataKIM.time.raw(end) > dataMotion.timestamps(end)
-    end_index = find(dataKIM.time.raw < dataMotion.timestamps(end), 1, 'last');
-    KIM_time = dataKIM.time.raw(1:end_index);
-else
-    end_index = length(dataKIM.time.raw);
-    KIM_time = dataKIM.time.raw;
+%% Align KIM and motion traces
+app = ManualMatch(dataKIM, dataMotion);  % create the matching app window
+while app.Done == 0  % polling
+    pause(0.05);
 end
-MotionTime = dataMotion.timestamps;
-Motion = smoothdata(sqrt(sum(dataMotion.raw.^2,2)),'gaussian',1/mean(diff(dataMotion.timestamps))); % Smooth the source motion using a 1 second window
-
-rKIMmotion = sqrt(sum(dataKIM.coord.shifted.^2,2));
-%     writematrix([KIM_time rKIMmotion], fullfile(KIMmotion.KIMOutputFolder, [prefix '_' middle '_KIM_r_motion.csv']));
-
-% Trim the start of the KIM signal incase there are artefacts when tracking starts
-start_index = StrtIndx(rKIMmotion);
-
-KIMmagnitude = smoothdata(rKIMmotion(start_index:end_index),'gaussian',5);  % smooth the KIM data using a 5 data point window
-KIM_time = KIM_time(start_index:end);
-
-Motion = Motion - min(Motion);
-KIMmagnitude = KIMmagnitude - min(KIMmagnitude); 
-
-rmseSI = nan(1,length(ShiftValues));
-% f = figure;
-% pause(0.1)
-for a = 1:length(ShiftValues)
-    mod_time = KIM_time + ShiftValues(a);
-    interpMotion = interp1(MotionTime, Motion, mod_time,'linear',0);
-    rmseSI(a) = sum((KIMmagnitude-interpMotion).^2)/end_index;
-    
-%     if rem(a,500)==0
-%         figure(f), plot(mod_time, interpMotion, 'k-', mod_time, KIMmagnitude, 'g.')
-%         pause(0.05)
-%     end
+if app.Done == -1
+   return
 end
-% close(f)
+TimeShift = app.GrossSlider.Value + app.FineSlider.Value;
+SourceMotion = app.data.Source;
+KIMmagnitude = app.data.Compare;
+app.CloseThisWindow;   % delete the parameter window
 
-[~,I] = min(rmseSI);
-TimeShift = ShiftValues(I);
 dataKIM.time.corrected = dataKIM.time.raw + TimeShift + latency;
+ZeroIndex = find(dataKIM.time.corrected>0,1,'first');
 
+%% Add couch shifts to source motion
 dataMotion.shifted = dataMotion.raw;
 if couch.NumShifts >= 1
     for n = 1:couch.NumShifts
@@ -424,7 +393,7 @@ if couch.NumShifts >= 1
     % Plot KIM with expected motion data (matched)
     f = figure('Units','pixels','Position',[100 100 1000 600]);
     hold on
-    plot(dataMotion.timestamps, dataMotion.raw(:,2), 'k-', dataKIM.time.corrected, dataKIM.coord.shifted(:,2), 'g.')
+    plot(dataMotion.timestamps, dataMotion.raw(:,2), 'k-', dataKIM.time.corrected(ZeroIndex:end), dataKIM.coord.shifted(ZeroIndex:end,2), 'g.')
     xlabel('Index', 'fontsize',16)
     ylabel('SI position (mm)', 'fontsize',16)
     title('Step 3: KIM after time shift; no couch shifts', 'fontsize', 16)
@@ -443,8 +412,8 @@ end
 % Plot KIM synced with expected motion data
 f = figure('Units','pixels','Position',[100 100 1000 600]);
 hold on
-plot(MotionTime, Motion, 'k.', KIM_time + TimeShift, KIMmagnitude, 'r-')
-plot(MotionTime, sqrt(sum(dataMotion.raw.^2,2)), 'c--', KIM_time + TimeShift, rKIMmotion(start_index:end_index), 'g--')
+plot(dataMotion.timestamps, SourceMotion, 'k.', dataKIM.time.raw + TimeShift, KIMmagnitude, 'r-')
+plot(dataMotion.timestamps, sqrt(sum(dataMotion.raw.^2,2)), 'c--', dataKIM.time.raw + TimeShift, sqrt(sum(dataKIM.coord.shifted.^2,2)), 'g--')
 xlabel('Index', 'fontsize',16)
 ylabel('Position (mm)', 'fontsize',16)
 title('Smoothed source motion vs KIM detected motion', 'fontsize', 16)
@@ -456,7 +425,7 @@ print(f,'-djpeg','-r300',fullfile(KIMdata.KIMOutputFolder,ImageFilename))
 
 f = figure('Units','pixels','Position',[100 100 1000 600]);
 hold on
-plot(dataKIM.time.corrected, dataKIM.coord.center(:,2),'gx', dataKIM.time.corrected, dataKIM.coord.center(:,3),'rx', dataKIM.time.corrected, dataKIM.coord.center(:,1),'bx', 'linewidth', 3)
+plot(dataKIM.time.corrected(ZeroIndex:end), dataKIM.coord.center(ZeroIndex:end,2),'gx', dataKIM.time.corrected(ZeroIndex:end), dataKIM.coord.center(ZeroIndex:end,3),'rx', dataKIM.time.corrected(ZeroIndex:end), dataKIM.coord.center(ZeroIndex:end,1),'bx', 'linewidth', 3)
 plot(dataMotion.timestamps, dataMotion.shifted(:,2),'g-', dataMotion.timestamps, dataMotion.shifted(:,3),'r-', dataMotion.timestamps, dataMotion.shifted(:,1),'b-')
 ylabel('Position (mm)', 'fontsize',16);
 xlabel('Time (s)', 'fontsize',16);
@@ -468,6 +437,7 @@ ImageFilename = [prefix '_' middle '_KIMvsMotion.jpg'];
 print(f,'-djpeg','-r300',fullfile(KIMdata.KIMOutputFolder,ImageFilename))
 
 if any(dataKIM.analysis.Outliers)
+    dataKIM.analysis.Outliers(1:ZeroIndex-1) = 1;
     f = figure('Units','pixels','Position',[100 100 1000 600]);
     hold on
     plot(dataKIM.time.corrected(~dataKIM.analysis.Outliers), dataKIM.coord.center(~dataKIM.analysis.Outliers,2),'gx', ...
