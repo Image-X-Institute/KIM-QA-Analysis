@@ -139,8 +139,7 @@ if exist(fullfile(KIMdata.KIMTrajFolder, 'couchShifts.txt'),'file') == 2
     
     couch.NumShifts = length(couch.vrt)-1;
     if strcmp(KIMdata.vendor,'Varian')
-%         couch.ShiftsAP = -diff(couch.vrt)*10;	% AP maps to couch -vert
-        couch.ShiftsAP = diff(couch.vrt)*10;	% AP maps to couch -vert
+        couch.ShiftsAP = -diff(couch.vrt)*10;	% AP maps to couch -vert
         couch.ShiftsSI = diff(couch.lng)*10;    % SI maps to couch long
         couch.ShiftsLR = diff(couch.lat)*10;    % LR maps to couch lat
     else
@@ -166,7 +165,7 @@ if noOfTrajFiles > 1
 %             opts.VariableNamesLine = 0; % first line contains varaiable descriptions
 %             opts.DataLines = 1; % for subsequent KIM data files the data starts on the first line
 %         end
-        logfilename = fullfile(KIMdata.KIMTrajFolder, listOfTrajFiles(traj,:));
+        logfilename = strtrim(fullfile(KIMdata.KIMTrajFolder, listOfTrajFiles(traj,:)));
         opts = detectImportOptions(logfilename);
         temp = readcell(logfilename, opts);
         if traj == 1
@@ -235,7 +234,7 @@ dataKIM.coord.shifted = dataKIM.coord.center;
 if couch.NumShifts >= 1
     for n = 1:couch.NumShifts
         % x maps to LR couch; y maps to SI couch; z maps to AP couch
-        dataKIM.coord.shifted(ShiftIndex_KIM(n):end,:) = dataKIM.coord.center(ShiftIndex_KIM(n):end,:) - [couch.ShiftsLR(n) couch.ShiftsSI(n) couch.ShiftsAP(n)];
+        dataKIM.coord.shifted(ShiftIndex_KIM(n):end,:) = dataKIM.coord.shifted(ShiftIndex_KIM(n):end,:) - [couch.ShiftsLR(n) couch.ShiftsSI(n) couch.ShiftsAP(n)];
     end
 end
 if static
@@ -270,7 +269,7 @@ if couch.NumShifts >= 1
     for n = 1:couch.NumShifts
         [~,ShiftIndex_Mot(n)] = min(abs(dataMotion.timestamps - dataKIM.time.corrected(ShiftIndex_KIM(n))));
         % x maps to LR couch; y maps to SI couch; z maps to AP couch
-        dataMotion.shifted(ShiftIndex_Mot(n):end,:) = dataMotion.raw(ShiftIndex_Mot(n):end,:) + [couch.ShiftsLR(n) couch.ShiftsSI(n) couch.ShiftsAP(n)];
+        dataMotion.shifted(ShiftIndex_Mot(n):end,:) = dataMotion.shifted(ShiftIndex_Mot(n):end,:) + [couch.ShiftsLR(n) couch.ShiftsSI(n) couch.ShiftsAP(n)];
     end
 end
 
