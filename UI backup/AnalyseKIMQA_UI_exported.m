@@ -254,7 +254,7 @@ classdef AnalyseKIMQA_UI_exported < matlab.apps.AppBase
             app.LinacVendorButtonGroup = uibuttongroup(app.UIFigure);
             app.LinacVendorButtonGroup.SelectionChangedFcn = createCallbackFcn(app, @LinacVendorButtonGroupSelectionChanged, true);
             app.LinacVendorButtonGroup.Title = 'Linac Vendor';
-            app.LinacVendorButtonGroup.Position = [396 223 140 74];
+            app.LinacVendorButtonGroup.Position = [396 223 149 74];
 
             % Create VarianButton
             app.VarianButton = uiradiobutton(app.LinacVendorButtonGroup);
@@ -264,8 +264,8 @@ classdef AnalyseKIMQA_UI_exported < matlab.apps.AppBase
 
             % Create ElektaButton
             app.ElektaButton = uiradiobutton(app.LinacVendorButtonGroup);
-            app.ElektaButton.Text = 'Elekta';
-            app.ElektaButton.Position = [11 6 55 22];
+            app.ElektaButton.Text = 'Elekta/Varian with ADI';
+            app.ElektaButton.Position = [11 6 140 22];
 
             % Create StaticShiftsmmPanel
             app.StaticShiftsmmPanel = uipanel(app.UIFigure);
