@@ -1,6 +1,6 @@
 function ConvertRobot2Hexamotion
 
-[fname, pname] = uigetfile;
+[fname, pname] = uigetfile('*.txt');
 % pname = 'E:\GitHub\KIM-QA-Analysis\Robot traces';
 % fname = 'LiverTraj_BaselineWanderWithCardiac70s_robot.txt';
 
@@ -10,7 +10,7 @@ time = rawMotionData{1};
 position = [rawMotionData{2} rawMotionData{3} rawMotionData{4}];
 fclose(fid);
 
-hexatime = 0:0.02:time(end);
+hexatime = [0:0.02:time(end)]';
 
 posx = interp1(time,position(:,1),hexatime,'linear');
 posy = interp1(time,position(:,2),hexatime,'linear');
